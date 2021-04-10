@@ -26,8 +26,16 @@
 </template>
 
 <script>
+import axios from 'axios'
 
 export default {
-  name: 'MainLayout'
+  name: 'MainLayout',
+
+  async mounted () {
+    await axios.get('https://mitigation.tti.tamu.edu/wp-json/wp/v2/txdot_roadways')
+      .then((response) => {
+        console.log(response.data)
+      })
+  }
 }
 </script>
