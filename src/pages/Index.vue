@@ -20,9 +20,28 @@
           </q-item>
         </q-list>
       </q-card-section>
-      <q-card-section class="col-6">
-        Details<br>
-        {{roadDetails}}
+      <q-card-section class="col-6" v-if="roadDetails.title">
+        <b>Selection Details</b><br>
+        Roadway: {{metadata.roadway}}<br>
+        From: {{metadata.from}}<br>
+        To: {{metadata.to}}<br>
+        County: {{metadata.county}}<br>
+        Annual Hours of Delay per Mile: {{metadata.annual_hrs_of_delay_per_mile}}<br>
+        Annual Congestion Cost: {{metadata.annual_congestion_cost}}<br>
+        Ranking: {{metadata.ranking}}<br>
+        Year First Entered: {{metadata.year_first_entered}}<br>
+        Year Plan Active: {{metadata.year_plan_active}}<br>
+        Quarter Plan Active: {{metadata.quarter_plan_active}}<br>
+        Previous Rankings:
+          <span v-for="(data, index) in metadata.previous_ranking" :key="index">
+            {{data.year}} (#{{data.rank}})
+            <span v-if="index != metadata.previous_ranking.length - 1">
+              , </span>
+          </span><br>
+        Notes: {{metadata.notes || "N/A"}}<br>
+      </q-card-section>
+      <q-card-section class="col-6" v-else>
+        Nothing to display
       </q-card-section>
     </q-card>
   </div>
@@ -38,6 +57,7 @@ export default {
       numResults: 10,
       roadworksList: [],
       roadDetails: {},
+      metadata: {},
       txDotDetails: {},
       regionalDetails: {},
       roadAPI: 'https://mitigation.tti.tamu.edu/wp-json/wp/v2/txdot_roadways',
@@ -65,6 +85,7 @@ export default {
 
     getDetails (item) {
       this.roadDetails = Object.assign({}, item)
+      this.metadata = Object.assign({}, item.metadata)
     }
   }
 }
