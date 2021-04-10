@@ -10,7 +10,7 @@
         />
       </q-card-section>
       <q-card-section class="col-6">
-        Found {{roadworksList.length}} results
+        Found {{roadworksList.length}} results<br>
         <b>Click on item to get more information</b>
         <q-list bordered separator v-if="roadworksList.length > 0">
           <q-item clickable v-for="(item, id) in roadworksList" :key="id">
