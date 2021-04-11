@@ -30,7 +30,7 @@
           </q-card-section>
           <q-card-section class="col-6">
             Annual Hours of Delay per Mile: {{metadata.annual_hrs_of_delay_per_mile}}<br>
-            Annual Congestion Cost: {{metadata.annual_congestion_cost}}<br>
+            Annual Congestion Cost: {{formatNumber(metadata.annual_congestion_cost)}}<br>
             Year First Entered: {{metadata.year_first_entered}}<br>
             Year Plan Active: {{metadata.year_plan_active}}<br>
             Quarter Plan Active: {{metadata.quarter_plan_active}}
@@ -104,6 +104,10 @@ export default {
         .then((response) => {
           this.$set(this.roadDetails, 'authorName', response.data.name || 'N/A')
         })
+    },
+
+    formatNumber (val) {
+      return new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(val)
     }
   }
 }
