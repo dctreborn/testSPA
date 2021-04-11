@@ -2,6 +2,13 @@
 
 A Quasar Framework app
 
+## Application Description
+
+App lists roadworks in order of Ranking, Congestion Cost, Hours Delay, or County.
+A set number of roadworks can listed according to the #Items in the button dropdown.
+After clicking on a roadwork on the list, information is displayed on the side.
+If there are any associated projects, they will be listed with external links.
+
 ## Install the dependencies
 ```bash
 npm install
