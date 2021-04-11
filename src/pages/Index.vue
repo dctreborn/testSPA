@@ -21,24 +21,34 @@
         </q-list>
       </q-card-section>
       <q-card-section class="col-6" v-if="roadDetails.title">
-        <b>Selection Details</b><br>
-        Roadway: {{metadata.roadway}}<br>
-        From: {{metadata.from}}<br>
-        To: {{metadata.to}}<br>
-        County: {{metadata.county}}<br>
-        Annual Hours of Delay per Mile: {{metadata.annual_hrs_of_delay_per_mile}}<br>
-        Annual Congestion Cost: {{metadata.annual_congestion_cost}}<br>
-        Ranking: {{metadata.ranking}}<br>
-        Year First Entered: {{metadata.year_first_entered}}<br>
-        Year Plan Active: {{metadata.year_plan_active}}<br>
-        Quarter Plan Active: {{metadata.quarter_plan_active}}<br>
-        Previous Rankings:
-          <span v-for="(data, index) in metadata.previous_ranking" :key="index">
-            {{data.year}} (#{{data.rank}})
-            <span v-if="index != metadata.previous_ranking.length - 1">
-              , </span>
-          </span><br>
-        Notes: {{metadata.notes || "N/A"}}<br>
+        <q-card flat class="row q-pb-none">
+          <q-card-section class="col-12">
+            <span class="text-h6">{{metadata.roadway}}</span><br>
+            {{metadata.county}} County<br>
+            From: {{metadata.from}}<br>
+            To: {{metadata.to}}
+          </q-card-section>
+          <q-card-section class="col-6">
+            Annual Hours of Delay per Mile: {{metadata.annual_hrs_of_delay_per_mile}}<br>
+            Annual Congestion Cost: {{metadata.annual_congestion_cost}}<br>
+            Year First Entered: {{metadata.year_first_entered}}<br>
+            Year Plan Active: {{metadata.year_plan_active}}<br>
+            Quarter Plan Active: {{metadata.quarter_plan_active}}
+          </q-card-section>
+          <q-card-section class="col-6">
+            Ranking: {{metadata.ranking}}<br>
+            Previous Rankings:
+              <span v-for="(data, index) in metadata.previous_ranking" :key="index">
+                {{data.year}} (#{{data.rank}})
+                <span v-if="index != metadata.previous_ranking.length - 1">
+                  , </span>
+              </span><br>
+          </q-card-section>
+          <q-card-section class="col-12">
+            Notes: {{metadata.notes || "N/A"}}<br>
+            Author: {{roadDetails.authorName}}
+          </q-card-section>
+        </q-card>
       </q-card-section>
       <q-card-section class="col-6" v-else>
         Nothing to display
@@ -83,9 +93,17 @@ export default {
         })
     },
 
-    getDetails (item) {
+    async getDetails (item) {
       this.roadDetails = Object.assign({}, item)
       this.metadata = Object.assign({}, item.metadata)
+      await this.getAuthor(item)
+    },
+
+    async getAuthor (details) {
+      await axios.get(details._links.author[0].href)
+        .then((response) => {
+          this.$set(this.roadDetails, 'authorName', response.data.name || 'N/A')
+        })
     }
   }
 }
