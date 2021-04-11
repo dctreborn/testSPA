@@ -74,6 +74,26 @@
               </span><br>
           </q-card-section>
           <q-card-section class="col-12">
+            Associated TxDot Projects:
+            <span v-if="txDotProjects.length > 0">
+              <span v-for="(data, index) in txDotProjects" :key="index">
+                <a :href="data.link" target="_blank">{{data.text}}</a>
+                <span v-if="index != txDotProjects.length - 1">
+                  , </span>
+              </span>
+            </span>
+            <span v-else>N/A</span><br>
+            Associated Regional Projects:
+            <span v-if="regionalProjects.length > 0">
+              <span v-for="(data, index) in regionalProjects" :key="index">
+                <a :href="data.link" target="_blank">{{data.text}}</a>
+                <span v-if="index != regionalProjects.length - 1">
+                  , </span>
+              </span>
+            </span>
+            <span v-else>N/A</span>
+          </q-card-section>
+          <q-card-section class="col-12">
             Notes: {{metadata.notes || "N/A"}}<br>
             Author: {{roadDetails.authorName}}
           </q-card-section>
@@ -121,6 +141,8 @@ export default {
       roadworksList: [],
       sortedList: [],
       roadDetails: {},
+      txDotProjects: [],
+      regionalProjects: [],
       metadata: {},
       roadAPI: 'https://mitigation.tti.tamu.edu/wp-json/wp/v2/txdot_roadways',
       pages: '?per_page='
@@ -179,6 +201,8 @@ export default {
       this.roadDetails = Object.assign({}, item)
       this.metadata = Object.assign({}, item.metadata)
       await this.getAuthor(item)
+      await this.getTxDotProject(item.projects)
+      await this.getRegionalProject(item.regional_projects)
     },
 
     async getAuthor (details) {
@@ -186,6 +210,47 @@ export default {
         .then((response) => {
           this.$set(this.roadDetails, 'authorName', response.data.name || 'N/A')
         })
+    },
+
+    async getTxDotProject (projects) {
+      this.txDotProjects = []
+      if (projects.length > 0) {
+        const api = 'https://mitigation.tti.tamu.edu/wp-json/wp/v2/txdot_projects/'
+        const tempArr = []
+
+        for (let x = 0; x < projects.length; x++) {
+          // console.log(api + projects[x])
+          await axios.get(api + projects[x])
+            .then((response) => {
+              const data = response.data
+              tempArr.push({
+                text: data.title.rendered,
+                link: data.link
+              })
+            })
+        }
+        this.txDotProjects = tempArr
+      }
+    },
+
+    async getRegionalProject (projects) {
+      this.regionalProjects = []
+      if (projects.length > 0) {
+        const api = 'https://mitigation.tti.tamu.edu/wp-json/wp/v2/regionalproject/'
+        const tempArr = []
+
+        for (let x = 0; x < projects.length; x++) {
+          await axios.get(api + projects[x])
+            .then((response) => {
+              const data = response.data
+              tempArr.push({
+                text: data.title.rendered,
+                link: data.link
+              })
+            })
+        }
+        this.regionalProjects = tempArr
+      }
     },
 
     formatNumber (val) {
