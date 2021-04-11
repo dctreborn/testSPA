@@ -1,25 +1,54 @@
 <template>
   <div>
     <q-card flat class="row">
+      <!-- sorting -->
       <q-card-section class="col-12">
-        <q-select
-          style="width: 150px"
-          v-model="numResults"
-          :options="resultsNum"
-          label="Number of Results"
-        />
+        <!-- item number -->
+        <q-btn-group>
+          <q-btn-dropdown color="primary" :label="paginationLabel + numResults">
+            <q-list separator>
+              <q-item v-close-popup v-for="(num, index) in resultsNum" :key="index">
+                <q-item-section class="cursor-pointer" @click="changePagination(num)">
+                  <q-item-label>{{num}}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+          <!-- sort by -->
+          <q-btn-dropdown color="secondary" :label="sortLabel + sortByLabel">
+            <q-list separator>
+              <q-item v-close-popup v-for="(sort, index) in sortBy" :key="index">
+                <q-item-section class="cursor-pointer" @click="changeSort(sort)">
+                  <q-item-label>{{sort.label}}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+          <!-- asc/desc -->
+          <q-btn-dropdown color="dark" :label="orderLabel">
+            <q-list separator>
+              <q-item v-close-popup v-for="(order, index) in orderBy" :key="index">
+                <q-item-section class="cursor-pointer" @click="changeOrder(order)">
+                  <q-item-label>{{order}}</q-item-label>
+                </q-item-section>
+              </q-item>
+            </q-list>
+          </q-btn-dropdown>
+        </q-btn-group>
       </q-card-section>
+      <!-- results -->
       <q-card-section class="col-6">
-        Found {{roadworksList.length}} results<br>
+        Found {{sortedList.length}} results<br>
         <b>Click on item to get more information</b>
-        <q-list bordered separator v-if="roadworksList.length > 0">
-          <q-item clickable v-for="(item, id) in roadworksList" :key="id">
+        <q-list bordered separator v-if="sortedList.length > 0">
+          <q-item clickable v-for="(item, id) in sortedList" :key="id">
             <q-item-section @click="getDetails(item)">
               {{item.title.rendered}}
             </q-item-section>
           </q-item>
         </q-list>
       </q-card-section>
+      <!-- details -->
       <q-card-section class="col-6" v-if="roadDetails.title">
         <q-card flat class="row q-pb-none">
           <q-card-section class="col-12">
@@ -65,11 +94,34 @@ export default {
     return {
       resultsNum: [10, 50, 100],
       numResults: 10,
+      paginationLabel: '# Items: ',
+      sortLabel: 'Sort By ',
+      sortByLabel: 'Ranking',
+      sortKey: 'ranking',
+      sortBy: [
+        {
+          label: 'Ranking',
+          key: 'ranking'
+        },
+        {
+          label: 'Congestion Cost',
+          key: 'annual_congestion_cost'
+        },
+        {
+          label: 'Hours Delay',
+          key: 'annual_hrs_of_delay_per_mile'
+        },
+        {
+          label: 'County',
+          key: 'country'
+        }
+      ],
+      orderLabel: 'Desc',
+      orderBy: ['Desc', 'Asc'],
       roadworksList: [],
+      sortedList: [],
       roadDetails: {},
       metadata: {},
-      txDotDetails: {},
-      regionalDetails: {},
       roadAPI: 'https://mitigation.tti.tamu.edu/wp-json/wp/v2/txdot_roadways',
       pages: '?per_page='
     }
@@ -86,10 +138,40 @@ export default {
   },
 
   methods: {
+    changePagination (num) {
+      this.numResults = num
+    },
+
+    changeSort (sort) {
+      this.sortByLabel = sort.label
+      this.sortKey = sort.key
+    },
+
+    changeOrder (order) {
+      this.orderLabel = order
+      this.sortResults()
+    },
+
+    sortResults () {
+      const tempArr = JSON.parse(JSON.stringify(this.sortedList))
+      if (this.orderLabel.toLowerCase() === 'asc') {
+        tempArr.sort((a, b) => {
+          return a.metadata[this.sortKey] - b.metadata[this.sortKey]
+        })
+      } else if (this.orderLabel.toLowerCase() === 'desc') {
+        tempArr.sort((a, b) => {
+          return b.metadata[this.sortKey] - a.metadata[this.sortKey]
+        })
+      }
+      this.sortedList = JSON.parse(JSON.stringify(tempArr))
+    },
+
     async getRoadworks () {
       await axios.get(this.roadAPI + this.pages + this.numResults)
         .then((response) => {
           this.roadworksList = response.data.filter(x => x.status === 'publish')
+          this.sortedList = JSON.parse(JSON.stringify(this.roadworksList))
+          this.sortResults()
         })
     },
 
